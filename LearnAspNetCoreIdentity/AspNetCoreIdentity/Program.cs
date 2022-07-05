@@ -44,8 +44,17 @@ services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Account/AccessDenied";
 });
 
+services.AddAuthentication().AddFacebook(options =>
+{
+    options.AppId = configuration["FacebookAuth:AppId"];
+    options.AppSecret = configuration["FacebookAuth:AppSecret"];
+});
+
 // Add services to the container.
 services.AddRazorPages();
+
+// AddControllers to use Controllers as well for redirect callback from external authentication
+services.AddControllers();
 
 // Register Infrastructures
 // services.AddTransient<IEmailService, SystemSmtpEmailService>(); // Just for testing multiple implementation
@@ -73,6 +82,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapRazorPages();
+
+// MapControllers to use Controllers as well for redirect callback from external authentication
+app.MapControllers();
 
 // Auto run Migrate db
 using (var scope = app.Services.CreateScope())

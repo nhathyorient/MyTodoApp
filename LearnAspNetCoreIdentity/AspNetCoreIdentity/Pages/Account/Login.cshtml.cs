@@ -20,8 +20,13 @@ namespace AspNetCoreIdentity.Pages.Account
         [BindProperty]
         public CredentialViewModel Credential { get; set; } = new CredentialViewModel();
 
-        public void OnGet()
+        [BindProperty] public IEnumerable<AuthenticationScheme> ExternalLoginProviders { get; set; }
+
+        public async Task<IActionResult> OnGet()
         {
+            ExternalLoginProviders = await signInManager.GetExternalAuthenticationSchemesAsync();
+
+            return Page();
         }
 
         public async Task<IActionResult> OnPostAsync([FromQuery] string? returnUrl)
@@ -65,6 +70,17 @@ namespace AspNetCoreIdentity.Pages.Account
             }
 
             return Page();
+        }
+
+        // string provider <=> name="provider"
+        // asp-page-handler="LoginExternally" <=> LoginExternally
+        public IActionResult OnPostLoginExternally(string provider)
+        {
+            var externalAuthenticationProperties = signInManager.ConfigureExternalAuthenticationProperties(
+                provider,
+                redirectUrl: Url.Action(controller: "Account", action: "ExternalLoginCallback"));
+
+            return Challenge(properties: externalAuthenticationProperties);
         }
     }
 

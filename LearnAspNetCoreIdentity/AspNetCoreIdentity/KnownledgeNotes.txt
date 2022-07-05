@@ -23,3 +23,11 @@ HOW AUTHENTICATOR APP WORKS AS MFA (Multi Factor Authentication)
 	- 4 The mobile app will take the current universal time period (every 30s calculated from the 0 start of universal time, just like a clock), so both side have the same universal time, take hasing algorithm with the key to generate a hash value (usually a 6 digit numbers)
 	- 5 The hash value, called code will be send to the application. The application use the same saved security key + current universal time period (every 30s calculated from the 0 start of universal time, just like a clock) to generate the second hash value
 	to compare two code must be equal.
+
+
+An authentication challenge is invoked by Authorization when an unauthenticated user requests an endpoint that requires authentication. 
+An authentication challenge is issued, for example, when an anonymous user requests a restricted resource or clicks on a login link. 
+Authorization invokes a challenge using the specified authentication scheme(s), or the default if none is specified. See HttpContext.ChallengeAsync. 
+Authentication challenge examples include:
+	- A cookie authentication scheme redirecting the user to a login page. A JWT bearer scheme returning a 401 result with a www-authenticate: bearer header.
+	- A challenge action should let the user know what authentication mechanism to use to access the requested resource.
