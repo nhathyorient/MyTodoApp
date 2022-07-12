@@ -17,7 +17,7 @@ public class Project : RootEntity
 
     public List<ProjectTask> Tasks { get; set; } = new List<ProjectTask>();
 
-    public static ExpressionValidator<Project> HasSaveProjectTaskPermissionValidator(string auditUserId)
+    public static ExpressionValidator<Project> HasSaveProjectPermissionValidator(string auditUserId)
     {
         return new ExpressionValidator<Project>(
             validExpr: project => project.CreatedBy == auditUserId,
@@ -26,7 +26,7 @@ public class Project : RootEntity
 
     public Project AddNewTask(string name, string? description, string auditUserId)
     {
-        ValidateHasSaveProjectTaskPermission(auditUserId)
+        ValidateHasSaveProjectPermission(auditUserId)
             .EnsureValid(exceptionForError: error => new UnauthorizedDomainException(error));
 
         Tasks.Add(new ProjectTask()
@@ -44,7 +44,7 @@ public class Project : RootEntity
 
     public Project UpdateTask(ProjectTask projectTask, string currentUserId)
     {
-        ValidateHasSaveProjectTaskPermission(currentUserId)
+        ValidateHasSaveProjectPermission(currentUserId)
             .EnsureValid(exceptionForError: error => new UnauthorizedDomainException(error));
 
         var foundReplacedTasks = Tasks.ReplaceWhere(p => p.Id == projectTask.Id, projectTask);
@@ -54,9 +54,9 @@ public class Project : RootEntity
         return this;
     }
 
-    public ValidationResult ValidateHasSaveProjectTaskPermission(string currentUserId)
+    public ValidationResult ValidateHasSaveProjectPermission(string currentUserId)
     {
-        return HasSaveProjectTaskPermissionValidator(currentUserId).Validate(this);
+        return HasSaveProjectPermissionValidator(currentUserId).Validate(this);
     }
 
     public override ValidationResult Validate()
