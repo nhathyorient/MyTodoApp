@@ -10,7 +10,6 @@ namespace Todos.Domain.Exception
     {
         public DomainException(string errorMessage) : base(errorMessage)
         {
-
         }
     }
 }

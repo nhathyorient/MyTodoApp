@@ -70,13 +70,13 @@ public class Project : RootEntity
 public class ProjectTask : Entity
 {
     public static ExpressionValidator<ProjectTask> CanAssignProjectMemberValidator(
-        ProjectMember assignorMember,
+        ProjectMember auditMember,
         ProjectMember projectMember)
     {
         return new ExpressionValidator<ProjectTask>(
-            validExpr: task => task.Status != Statuses.Finished &&
-                          task.ProjectId == projectMember.ProjectId &&
-                          (assignorMember.Role == ProjectMember.Roles.ProjectOwner || task.AssignedProjectMemberId == null),
+            validExpr: task => task.ProjectId == projectMember.ProjectId &&
+                          (auditMember.Role == ProjectMember.Roles.ProjectOwner || task.AssignedProjectMemberId == null) &
+                          task.Status != Statuses.Finished,
             errorMsg: "Only ProjectMember can assign themselves to an unassigned task or ProjectOwner can change assignees and task must be not Finished.");
     }
 
@@ -116,18 +116,17 @@ public class ProjectTask : Entity
 
     public override ValidationResult Validate()
     {
-        if (string.IsNullOrEmpty(Name)) return ValidationResult.Failure("Name must be not null or empty.");
-
-        return base.Validate()
-            .And(NameValidator().Validate(this))
-            .And(ProjectIdValidator().Validate(this));
+        return ValidationResult.Valid()
+            .And(() => NameValidator().Validate(this))
+            .And(() => ProjectIdValidator().Validate(this));
     }
 
     public ProjectTask AssignProjectMember(
-        ProjectMember assignorMember,
+        ProjectMember auditMember,
         ProjectMember projectMember)
     {
-        ValidateCanAssignProjectMember(assignorMember, projectMember).EnsureValid(error => new DomainException(error));
+        ValidateCanAssignProjectMember(auditMember, projectMember)
+            .EnsureValid(error => new DomainException(error));
 
         AssignedProjectMemberId = projectMember.Id;
 
@@ -135,27 +134,22 @@ public class ProjectTask : Entity
     }
 
     public ValidationResult ValidateCanAssignProjectMember(
-        ProjectMember assignorMember,
+        ProjectMember auditMember,
         ProjectMember projectMember)
     {
-        return CanAssignProjectMemberValidator(assignorMember, projectMember).Validate(this);
+        return CanAssignProjectMemberValidator(auditMember, projectMember).Validate(this);
     }
 
     public ProjectTask UpdateStatus(
         Statuses status,
         ProjectMember auditMember)
     {
-        ValidateCanUpdateStatus(auditMember).EnsureValid(error => new DomainException(error));
+        CanUpdateStatusValidator(auditMember).Validate(this)
+            .EnsureValid(error => new DomainException(error));
 
         Status = status;
 
         return this;
-    }
-
-    public ValidationResult ValidateCanUpdateStatus(
-        ProjectMember auditMember)
-    {
-        return CanUpdateStatusValidator(auditMember).Validate(this);
     }
 
     public enum Statuses

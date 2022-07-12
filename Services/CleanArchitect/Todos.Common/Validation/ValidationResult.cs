@@ -70,9 +70,15 @@ namespace Todos.Common.Validation
             if (!IsValid) throw exceptionForError(ToString());
         }
 
-        public ValidationResult And(ValidationResult nextValidation)
+        /// <summary>
+        /// WHAT: Use and next validation.
+        /// WHY: Use function instead of directly ValidationResult because
+        /// when you want to multiple and, the next validation rule only
+        /// executed when the previous is valid
+        /// </summary>
+        public ValidationResult And(Func<ValidationResult> nextValidation)
         {
-            return !IsValid ? this : nextValidation;
+            return !IsValid ? this : nextValidation();
         }
     }
 }
